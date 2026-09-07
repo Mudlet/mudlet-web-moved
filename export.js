@@ -16,11 +16,17 @@
     var FORMAT = 'mudlet-web-backup';
     var FORMAT_VERSION = 1;
 
-    // Everything this deployment created is `mudix`-prefixed (the project's
+    // Databases this deployment created are all `mudix`-prefixed (the project's
     // pre-rename name, kept deliberately - see the note on storage keys in the
-    // app's CLAUDE.md). Databases: `mudix_vfs_<connectionId>` per profile, plus
-    // mudix_maps, mudix_logs and mudix_folder_handles.
+    // app's CLAUDE.md): `mudix_vfs_<connectionId>` per profile, plus mudix_maps,
+    // mudix_logs and mudix_folder_handles.
     var OURS = /^mudix/;
+    // localStorage is not so tidy - command history is stored under
+    // `cmd.history.<connectionId>`, with no prefix at all. Rather than curate a
+    // list that silently drops the next key someone adds, every localStorage key
+    // is exported; this pattern only decides whether there is anything here
+    // worth offering to rescue.
+    var OURS_LOCAL = /^(mudix|cmd\.history)/;
     var LOGS_DB = 'mudix_logs';
     // Directory handles are live capability objects. They do not survive being
     // written to a file, and could not be re-granted on another origin even if
@@ -264,22 +270,29 @@
         return present;
     }
 
+    /** Every localStorage key on this origin. Only this app ever wrote here, so
+     *  taking the lot is both lossless and immune to a key being forgotten. */
     function localStorageKeys() {
         var keys = [];
         try {
             for (var i = 0; i < localStorage.length; i++) {
                 var k = localStorage.key(i);
-                if (k && OURS.test(k)) keys.push(k);
+                if (k) keys.push(k);
             }
         } catch (e) { /* storage blocked; nothing to export */ }
         return keys;
+    }
+
+    /** Of those, the ones that mean this browser actually used the old client. */
+    function recognisedLocalKeys() {
+        return localStorageKeys().filter(function (k) { return OURS_LOCAL.test(k); });
     }
 
     // ----------------------------------------------------------------- public
 
     async function scan() {
         var names = await listDatabases();
-        var keys = localStorageKeys();
+        var keys = recognisedLocalKeys();
         return {
             databases: names,
             localStorageKeys: keys,

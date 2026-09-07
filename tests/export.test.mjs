@@ -54,6 +54,8 @@ await page.evaluate(async (connId) => {
         version: 21,
     }));
     localStorage.setItem('mudix.debugGmcp', '1');
+    // Command history has no mudix prefix - it was missed by the first cut.
+    localStorage.setItem('cmd.history.' + connId, '["look"]');
 
     const open = (name, upgrade) => new Promise((res, rej) => {
         const req = indexedDB.open(name, 1);
@@ -115,6 +117,9 @@ const backup = JSON.parse(await readFile(await (await dl).path(), 'utf8'));
 check('format tag', backup.format === 'mudlet-web-backup' && backup.version === 1);
 check('localStorage captured', typeof backup.localStorage['mudix_v1'] === 'string'
     && backup.localStorage['mudix.debugGmcp'] === '1');
+check('un-prefixed command history captured',
+    backup.localStorage['cmd.history.' + CONN] === '["look"]',
+    JSON.stringify(Object.keys(backup.localStorage)));
 check('profile VFS database captured', !!backup.indexedDB['mudix_vfs_' + CONN]);
 check('maps captured', !!backup.indexedDB['mudix_maps']);
 check('logs excluded by default', !backup.indexedDB['mudix_logs']);

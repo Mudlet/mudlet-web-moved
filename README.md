@@ -29,15 +29,23 @@ What it collects:
 
 | Source | Holds |
 | --- | --- |
-| `localStorage` (`mudix*` keys) | the profile list and global client settings |
+| `localStorage` (every key) | the profile list, global client settings, per-profile command history and stopwatches, and the (already encrypted) credential vault |
 | `mudix_vfs_<connectionId>` | one database per profile: scripts, aliases, triggers, timers, keybindings, buttons, packages, fonts, sounds |
 | `mudix_maps` | Mudlet binary map data |
 | `mudix_logs` | session logs — opt-in, and usually by far the largest part |
 | `mudix_folder_handles` | **not exported.** A linked local folder is a browser permission, not data; it cannot be re-granted on another origin. Re-link the folder there. |
 
-The keys are `mudix`-prefixed because the project kept its pre-rename storage names on
-purpose — renaming them would orphan existing profiles, which is the very problem this
-page exists to solve.
+Database names are `mudix`-prefixed because the project kept its pre-rename storage
+names on purpose — renaming them would orphan existing profiles, which is the very
+problem this page exists to solve. localStorage is less tidy (command history is
+`cmd.history.<connectionId>`, with no prefix), so every key there is taken rather than
+a curated list that would silently drop the next one someone adds.
+
+The importer on the new address lives in
+[Mudlet/mudlet-web](https://github.com/Mudlet/mudlet-web) as `src/import/backupImport.ts`,
+reached from **Import backup…** on the profile screen. It does *not* restore the
+credential vault: a passkey unlocker is bound to the address it was created on, so a
+restored vault could be permanently unopenable. Saved logins have to be entered again.
 
 ### File format
 
