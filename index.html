@@ -205,11 +205,11 @@
   // profile's data lives in a database named after its id, which means nothing
   // to the person reading this.
   function summarise(scan) {
-    var profiles = 0, extras = [];
+    var profiles = 0, maps = false, hasLogs = false;
     scan.databases.forEach(function (name) {
       if (name.indexOf('mudix_vfs_') === 0) profiles += 1;
-      else if (name === 'mudix_maps') extras.push('Maps');
-      else if (name === 'mudix_logs') extras.push('Session logs');
+      else if (name === 'mudix_maps') maps = true;
+      else if (name === 'mudix_logs') hasLogs = true;
     });
 
     var rows = [];
@@ -219,9 +219,19 @@
     } else if (scan.localStorageKeys.length) {
       rows.push('<b>Settings</b> and your profile list');
     }
-    extras.forEach(function (e) { rows.push('<b>' + e + '</b>'); });
+    if (maps) rows.push('<b>Maps</b>');
+    // Last, and marked: the checkbox right below decides whether it is included,
+    // and an unqualified bullet here reads as a promise that it already is.
+    if (hasLogs) rows.push('<b>Session logs</b> &mdash; only if you tick the box below');
     if (!rows.length) rows.push('<b>Saved data</b> from the old client');
     list.innerHTML = rows.map(function (r) { return '<li>' + r + '</li>'; }).join('');
+  }
+
+  // The checkbox is only meaningful when there are logs to include.
+  function tuneLogsOption(scan) {
+    if (scan.databases.indexOf('mudix_logs') === -1) {
+      logs.closest('label').hidden = true;
+    }
   }
 
   if (!window.MudletWebExport) return;
@@ -229,6 +239,7 @@
   MudletWebExport.scan().then(function (scan) {
     if (!scan.hasData) return;   // A fresh visitor has nothing to rescue.
     summarise(scan);
+    tuneLogsOption(scan);
     panel.hidden = false;
   }).catch(function () { /* leave the panel hidden */ });
 
