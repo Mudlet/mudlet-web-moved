@@ -1,0 +1,40 @@
+# Publishes the four files that make up the notice page. Pages here is set to
+# "GitHub Actions" as its source rather than a branch, so nothing deploys
+# without this workflow - a push to main alone would leave the live page on
+# whatever the branch builder last produced.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      # Named explicitly rather than uploading the repository root: README.md
+      # and this workflow are not part of the site, and a stray file appearing
+      # under the old domain is exactly what this page exists to stop.
+      - name: Stage the site
+        run: |
+          mkdir -p _site
+          cp index.html 404.html CNAME icon.svg _site/
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v5
