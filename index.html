@@ -7,8 +7,6 @@
 <meta name="description" content="Mudlet Web now lives at web.mudlet.org.">
 <link rel="canonical" href="https://web.mudlet.org/">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<!-- Fallback for scripting-off; the script below preserves path and query. -->
-<noscript><meta http-equiv="refresh" content="0; url=https://web.mudlet.org/"></noscript>
 <style>
   :root {
     color-scheme: dark;
@@ -45,7 +43,7 @@
   p { margin: 0 0 14px; color: var(--muted); }
   .to {
     display: inline-block;
-    margin: 6px 0 18px;
+    margin: 6px 0 4px;
     padding: 12px 22px;
     border-radius: 9px;
     background: var(--accent);
@@ -55,16 +53,17 @@
   }
   .to:hover { filter: brightness(1.08); }
   code { color: var(--fg); font-size: .95em; }
+  a { color: var(--accent); }
   .note {
-    margin-top: 22px;
+    margin-top: 24px;
     padding-top: 18px;
     border-top: 1px solid var(--edge);
     font-size: .85rem;
     color: var(--muted);
     text-align: left;
   }
+  .note p:last-child { margin-bottom: 0; }
   .note strong { color: var(--fg); font-weight: 600; }
-  #countdown { font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body>
@@ -73,26 +72,34 @@
   <h1>Mudlet Web has moved</h1>
   <p>This client now lives at <code>web.mudlet.org</code>.</p>
   <a class="to" id="go" href="https://web.mudlet.org/">Go to web.mudlet.org</a>
-  <p>Redirecting in <span id="countdown">5</span>&hellip;</p>
-  <p class="note">
-    <strong>Update your bookmarks.</strong> Profiles, scripts and maps are stored by
-    your browser per address, so they do not travel to the new one automatically &mdash;
-    the new site starts empty. Nothing here has been deleted &mdash; if you need
-    help moving an old profile across, open an issue on
-    <a href="https://github.com/Mudlet/mudlet-web/issues" style="color:var(--accent)">GitHub</a>.
-  </p>
+
+  <div class="note">
+    <p><strong>Please update your bookmarks.</strong></p>
+    <p>
+      Profiles, scripts and maps are stored by your browser per address, so they do
+      not travel to the new one on their own &mdash; the new site starts out empty.
+    </p>
+    <p>
+      <strong>Nothing has been deleted.</strong> Everything you had is still here in
+      this browser, and we are working on a way to bring it across to the new
+      address. If you need it sooner, open an issue on
+      <a href="https://github.com/Mudlet/mudlet-web/issues">GitHub</a>.
+    </p>
+  </div>
 </main>
 <script>
 (function () {
-  // Deep links keep working: ?play=…, ?profile=… and any path carry over.
-  var target = 'https://web.mudlet.org' + location.pathname + location.search + location.hash;
-  document.getElementById('go').href = target;
+  // Deep links keep working when the button is used: ?play=…, ?profile=… and any
+  // path carry over. Nothing navigates on its own - people land here holding an
+  // old bookmark, and the note below is the point of the page.
+  document.getElementById('go').href =
+    'https://web.mudlet.org' + location.pathname + location.search + location.hash;
 
   // The old app registered a service worker on this origin that cached its shell
   // and claimed every navigation. Left in place it keeps intercepting requests to
   // a site that no longer exists here, so retire it. This touches the Cache API
-  // only — localStorage and IndexedDB (profiles, maps, logs) are untouched, so an
-  // old profile can still be recovered from this origin later.
+  // only - localStorage and IndexedDB (profiles, maps, logs) are untouched, which
+  // is what the note above promises and what a later migration tool needs.
   try {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (rs) {
@@ -105,17 +112,6 @@
       }).catch(function () {});
     }
   } catch (e) {}
-
-  var left = 5;
-  var el = document.getElementById('countdown');
-  var tick = setInterval(function () {
-    left -= 1;
-    if (el) el.textContent = String(left);
-    if (left <= 0) {
-      clearInterval(tick);
-      location.replace(target);
-    }
-  }, 1000);
 })();
 </script>
 </body>
