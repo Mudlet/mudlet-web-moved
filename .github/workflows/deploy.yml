@@ -26,13 +26,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6
-      # Named explicitly rather than uploading the repository root: README.md
-      # and this workflow are not part of the site, and a stray file appearing
-      # under the old domain is exactly what this page exists to stop.
+      # Named explicitly rather than uploading the repository root: the tests,
+      # README.md and this workflow are not part of the site, and a stray file
+      # appearing under the old domain is exactly what this page exists to stop.
+      # Every file the page actually loads has to be listed here.
       - name: Stage the site
         run: |
           mkdir -p _site
-          cp index.html 404.html CNAME icon.svg _site/
+          cp index.html 404.html export.js CNAME icon.svg _site/
       - uses: actions/upload-pages-artifact@v5
         with:
           path: _site

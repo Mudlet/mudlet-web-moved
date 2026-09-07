@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mudlet Web has moved &middot; web.mudlet.org</title>
-<meta name="description" content="Mudlet Web now lives at web.mudlet.org.">
+<meta name="description" content="Mudlet Web now lives at web.mudlet.org. Rescue the data saved under the old address here.">
 <link rel="canonical" href="https://web.mudlet.org/">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <style>
@@ -12,6 +12,7 @@
     color-scheme: dark;
     --bg: #14110d;
     --card: #1d1a15;
+    --sunk: #17140f;
     --edge: #332c22;
     --fg: #ece6dc;
     --muted: #a1978a;
@@ -30,7 +31,7 @@
   }
   main {
     width: 100%;
-    max-width: 30rem;
+    max-width: 32rem;
     background: var(--card);
     border: 1px solid var(--edge);
     border-radius: 14px;
@@ -38,9 +39,12 @@
     text-align: center;
     box-shadow: 0 18px 50px rgba(0,0,0,.45);
   }
-  img { width: 72px; height: 72px; }
+  img.logo { width: 72px; height: 72px; }
   h1 { margin: 18px 0 6px; font-size: 1.5rem; letter-spacing: -.01em; }
+  h2 { margin: 0 0 10px; font-size: 1rem; letter-spacing: -.005em; }
   p { margin: 0 0 14px; color: var(--muted); }
+  a { color: var(--accent); }
+  code { color: var(--fg); font-size: .95em; }
   .to {
     display: inline-block;
     margin: 6px 0 4px;
@@ -52,8 +56,6 @@
     text-decoration: none;
   }
   .to:hover { filter: brightness(1.08); }
-  code { color: var(--fg); font-size: .95em; }
-  a { color: var(--accent); }
   .note {
     margin-top: 24px;
     padding-top: 18px;
@@ -64,14 +66,78 @@
   }
   .note p:last-child { margin-bottom: 0; }
   .note strong { color: var(--fg); font-weight: 600; }
+
+  /* The rescue panel, revealed only when this browser actually holds something. */
+  #rescue {
+    margin-top: 22px;
+    padding: 20px 18px;
+    border: 1px solid var(--edge);
+    border-radius: 11px;
+    background: var(--sunk);
+    text-align: left;
+    font-size: .875rem;
+  }
+  #found {
+    margin: 0 0 14px;
+    padding: 0;
+    list-style: none;
+    color: var(--muted);
+  }
+  #found li { padding: 3px 0 3px 20px; position: relative; }
+  #found li::before { content: "\2022"; position: absolute; left: 6px; color: var(--accent); }
+  #found b { color: var(--fg); font-weight: 600; }
+  label.opt {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+    margin: 0 0 14px;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  label.opt input { margin: 3px 0 0; accent-color: var(--accent); }
+  button {
+    font: inherit;
+    font-weight: 650;
+    padding: 10px 18px;
+    border-radius: 9px;
+    border: 1px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+  }
+  button:hover:not(:disabled) { background: rgba(216,165,74,.12); }
+  button:disabled { opacity: .55; cursor: default; }
+  #status { margin: 12px 0 0; min-height: 1.4em; font-size: .85rem; }
+  #status.err { color: #e08a7a; }
+  #status.ok { color: var(--fg); }
+  .fine { margin: 14px 0 0; font-size: .78rem; line-height: 1.5; }
 </style>
 </head>
 <body>
 <main>
-  <img src="icon.svg" alt="" width="72" height="72">
+  <img class="logo" src="icon.svg" alt="" width="72" height="72">
   <h1>Mudlet Web has moved</h1>
   <p>This client now lives at <code>web.mudlet.org</code>.</p>
   <a class="to" id="go" href="https://web.mudlet.org/">Go to web.mudlet.org</a>
+
+  <section id="rescue" hidden>
+    <h2>Your data from this address</h2>
+    <p>Browsers keep saved data separately for every address, so this is still here
+       and the new site cannot reach it. Download a copy before it ages out:</p>
+    <ul id="found"></ul>
+    <label class="opt">
+      <input type="checkbox" id="logs">
+      <span>Include session logs. Accurate, but usually by far the largest part.</span>
+    </label>
+    <button id="dl">Download backup</button>
+    <p id="status" role="status" aria-live="polite"></p>
+    <p class="fine">
+      Saves one <code>.json</code> file holding your profiles, scripts, triggers,
+      aliases, timers, keybindings, packages and maps. Keep it somewhere safe:
+      importing it into the new site is being built, and this file is what it will
+      read. Nothing here is deleted or changed by downloading it.
+    </p>
+  </section>
 
   <div class="note">
     <p><strong>Please update your bookmarks.</strong></p>
@@ -80,26 +146,26 @@
       not travel to the new one on their own &mdash; the new site starts out empty.
     </p>
     <p>
-      <strong>Nothing has been deleted.</strong> Everything you had is still here in
-      this browser, and we are working on a way to bring it across to the new
-      address. If you need it sooner, open an issue on
+      Questions, or an old profile that will not come across? Open an issue on
       <a href="https://github.com/Mudlet/mudlet-web/issues">GitHub</a>.
     </p>
   </div>
 </main>
+
+<script src="export.js"></script>
 <script>
 (function () {
   // Deep links keep working when the button is used: ?play=…, ?profile=… and any
   // path carry over. Nothing navigates on its own - people land here holding an
-  // old bookmark, and the note below is the point of the page.
+  // old bookmark, and the notice is the point of the page.
   document.getElementById('go').href =
     'https://web.mudlet.org' + location.pathname + location.search + location.hash;
 
   // The old app registered a service worker on this origin that cached its shell
   // and claimed every navigation. Left in place it keeps intercepting requests to
   // a site that no longer exists here, so retire it. This touches the Cache API
-  // only - localStorage and IndexedDB (profiles, maps, logs) are untouched, which
-  // is what the note above promises and what a later migration tool needs.
+  // only - localStorage and IndexedDB are what the rescue panel below exports,
+  // and are never cleared from here.
   try {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function (rs) {
@@ -112,6 +178,80 @@
       }).catch(function () {});
     }
   } catch (e) {}
+
+  var panel = document.getElementById('rescue');
+  var list = document.getElementById('found');
+  var button = document.getElementById('dl');
+  var logs = document.getElementById('logs');
+  var status = document.getElementById('status');
+
+  function say(text, kind) {
+    status.textContent = text || '';
+    status.className = kind || '';
+  }
+
+  function human(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    var units = ['KB', 'MB', 'GB'];
+    var n = bytes / 1024;
+    for (var i = 0; i < units.length; i++) {
+      if (n < 1024 || i === units.length - 1) return n.toFixed(n < 10 ? 1 : 0) + ' ' + units[i];
+      n /= 1024;
+    }
+    return bytes + ' B';
+  }
+
+  // What was found, counted by kind rather than listed one database per line: a
+  // profile's data lives in a database named after its id, which means nothing
+  // to the person reading this.
+  function summarise(scan) {
+    var profiles = 0, extras = [];
+    scan.databases.forEach(function (name) {
+      if (name.indexOf('mudix_vfs_') === 0) profiles += 1;
+      else if (name === 'mudix_maps') extras.push('Maps');
+      else if (name === 'mudix_logs') extras.push('Session logs');
+    });
+
+    var rows = [];
+    if (profiles) {
+      rows.push('<b>' + profiles + '</b> profile' + (profiles === 1 ? '' : 's') +
+                ' &mdash; scripts, triggers, aliases, timers, keybindings, packages');
+    } else if (scan.localStorageKeys.length) {
+      rows.push('<b>Settings</b> and your profile list');
+    }
+    extras.forEach(function (e) { rows.push('<b>' + e + '</b>'); });
+    if (!rows.length) rows.push('<b>Saved data</b> from the old client');
+    list.innerHTML = rows.map(function (r) { return '<li>' + r + '</li>'; }).join('');
+  }
+
+  if (!window.MudletWebExport) return;
+
+  MudletWebExport.scan().then(function (scan) {
+    if (!scan.hasData) return;   // A fresh visitor has nothing to rescue.
+    summarise(scan);
+    panel.hidden = false;
+  }).catch(function () { /* leave the panel hidden */ });
+
+  button.addEventListener('click', function () {
+    button.disabled = true;
+    logs.disabled = true;
+    say('Starting…');
+    MudletWebExport.build({
+      includeLogs: logs.checked,
+      onProgress: function (text) { say(text); }
+    }).then(function (backup) {
+      var size = MudletWebExport.download(backup);
+      var missed = (backup.skipped || []).filter(function (s) {
+        return s.where !== 'mudix_logs' && s.where !== 'mudix_folder_handles';
+      }).length;
+      say('Saved ' + human(size) + '.' + (missed ? ' ' + missed + ' item(s) could not be read.' : ''), 'ok');
+    }).catch(function (err) {
+      say('Export failed: ' + ((err && err.message) || err), 'err');
+    }).finally(function () {
+      button.disabled = false;
+      logs.disabled = false;
+    });
+  });
 })();
 </script>
 </body>
